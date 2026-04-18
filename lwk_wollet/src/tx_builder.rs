@@ -865,7 +865,7 @@ impl TxBuilder {
     pub fn finish_with_secrets(
         self,
         wollet: &Wollet,
-    ) -> Result<(PartiallySignedTransaction, Vec<String>), Error> {
+    ) -> Result<(PartiallySignedTransaction, OutputSharedSecrets), Error> {
         let (pset, blinding_nonces) = self.finish_inner(wollet, fasle)?;
         Ok((pset, blinding_nonces))
     }
