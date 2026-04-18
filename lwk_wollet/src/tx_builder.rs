@@ -861,6 +861,13 @@ impl TxBuilder {
         crate::amp0::Amp0Pset::new(pset, blinding_nonces)
     }
 
+    /// Finish building the transaction and return the per-output ECDH shared
+    /// secrets used to blind it, keyed by output index.
+    ///
+    /// Unlike [`Self::finish`], which discards the blinding nonces, this
+    /// returns them so the caller can reproduce or verify the blinding of
+    /// each output. Only outputs that this wallet blinded appear in the map;
+    /// unblinded and externally-blinded outputs are omitted.
     #[cfg(feature = "nonces")]
     pub fn finish_with_secrets(
         self,
