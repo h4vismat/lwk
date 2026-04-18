@@ -332,11 +332,17 @@ impl<S: Stream> Amp0<S> {
 
     /// Ask AMP0 server to cosign
     pub async fn sign(&self, amp0pset: &Amp0Pset) -> Result<Transaction, Error> {
-        let blinding_nonces = amp0pset
-            .blinding_nonces()
-            .values()
-            .map(|sk| sk.display_secret().to_string())
-            .collect::<Vec<_>>();
+        // The AMP0 server expects one entry per PSET output, in output order,
+        // with an empty string for outputs that carry no blinding nonce.
+        let nonces = amp0pset.blinding_nonces();
+        let blinding_nonces: Vec<String> = (0..amp0pset.pset().n_outputs())
+            .map(|idx| {
+                nonces
+                    .get(&idx)
+                    .map(|sk| sk.display_secret().to_string())
+                    .unwrap_or_default()
+            })
+            .collect();
 
         // "finalize" the PSET for Green/AMP0
         let mut pset = amp0pset.pset().clone();
