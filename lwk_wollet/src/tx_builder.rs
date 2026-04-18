@@ -1302,9 +1302,7 @@ impl TxBuilder {
                 );
 
                 blinding_nonces.insert(idx, shared_secret);
-            } else {
-                continue;
-            };
+            }
         }
 
         // Add details to the pset from our descriptor, like bip32derivation and keyorigin
