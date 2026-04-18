@@ -33,7 +33,7 @@ fn test_blinding_nonces() {
     w.send(&mut pset);
 
     // Amp0Pset::new checks that blinding nonces and PSET are consistent
-    let fake_blinding_nonces = vec![String::new(); blinding_nonces.len()];
+    let fake_blinding_nonces = std::collections::HashMap::new();
     let res = lwk_wollet::amp0::Amp0Pset::new(pset, fake_blinding_nonces);
     assert!(res.is_err());
 }
@@ -154,7 +154,7 @@ fn test_amp0_daily_ops() -> Result<(), Box<dyn std::error::Error>> {
     assert!(sigs > 0);
 
     // Reconstruct the Amp0 PSET with the PSET signed by the user
-    let amp0pset = Amp0Pset::new(pset, blinding_nonces.to_vec())?;
+    let amp0pset = Amp0Pset::new(pset, blinding_nonces.clone())?;
 
     // AMP0 signs
     let tx = amp0.sign(&amp0pset)?;
