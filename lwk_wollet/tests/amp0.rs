@@ -25,7 +25,6 @@ fn test_blinding_nonces() {
         .finish_for_amp0()
         .unwrap();
     let mut pset = amp0pset.pset().clone();
-    let blinding_nonces = amp0pset.blinding_nonces();
 
     let sigs = signer.sign(&mut pset).unwrap();
     assert!(sigs > 0);
