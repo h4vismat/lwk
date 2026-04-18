@@ -866,7 +866,7 @@ impl TxBuilder {
         self,
         wollet: &Wollet,
     ) -> Result<(PartiallySignedTransaction, OutputSharedSecrets), Error> {
-        let (pset, blinding_nonces) = self.finish_inner(wollet, fasle)?;
+        let (pset, blinding_nonces) = self.finish_inner(wollet, false)?;
         Ok((pset, blinding_nonces))
     }
 
