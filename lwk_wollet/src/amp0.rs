@@ -1694,7 +1694,7 @@ impl Amp0Pset {
         }
 
         for idx in blinding_nonces.keys() {
-            if idx > &pset.n_outputs() {
+            if idx >= &pset.n_outputs() {
                 return Err(Error::Generic(
                     "Invalid output index in blinding nonces".into(),
                 ));
