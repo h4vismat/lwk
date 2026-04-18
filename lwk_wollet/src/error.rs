@@ -124,6 +124,9 @@ pub enum Error {
     #[error("Missing issuance")]
     MissingIssuance,
 
+    #[error("Missing secret key.")]
+    MissingSecretKey,
+
     #[error("Missing transaction")]
     MissingTransaction,
 
