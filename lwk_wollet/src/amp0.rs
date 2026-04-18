@@ -332,7 +332,11 @@ impl<S: Stream> Amp0<S> {
 
     /// Ask AMP0 server to cosign
     pub async fn sign(&self, amp0pset: &Amp0Pset) -> Result<Transaction, Error> {
-        let blinding_nonces = amp0pset.blinding_nonces().to_vec();
+        let blinding_nonces = amp0pset
+            .blinding_nonces()
+            .values()
+            .map(|sk| sk.display_secret().to_string())
+            .collect::<Vec<_>>();
 
         // "finalize" the PSET for Green/AMP0
         let mut pset = amp0pset.pset().clone();
@@ -1642,22 +1646,23 @@ pub mod blocking {
 /// If you're not dealing with AMP0, do not use this struct.
 pub struct Amp0Pset {
     pset: PartiallySignedTransaction,
-    blinding_nonces: Vec<String>,
+    blinding_nonces: HashMap<usize, SecretKey>,
 }
 
 impl Amp0Pset {
     /// Construct a PSET to use with AMP0
     pub fn new(
         pset: PartiallySignedTransaction,
-        blinding_nonces: Vec<String>,
+        blinding_nonces: HashMap<usize, SecretKey>,
     ) -> Result<Self, Error> {
-        if pset.n_outputs() != blinding_nonces.len() {
-            return Err(Error::Generic("Invalid blinding nonces".into()));
-        }
         for (idx, output) in pset.outputs().iter().enumerate() {
             let txout = output.to_txout();
             if txout.is_partially_blinded() {
-                let shared_secret = SecretKey::from_str(&blinding_nonces[idx])?;
+                let shared_secret = blinding_nonces
+                    .get(&idx)
+                    .cloned()
+                    .ok_or(Error::MissingSecretKey)?;
+
                 let txoutsecrets = unblind_with_shared_secret(&txout, shared_secret)?;
                 let asset_comm = Generator::new_blinded(
                     &EC,
@@ -1677,10 +1682,19 @@ impl Amp0Pset {
                 {
                     return Err(Error::Generic("Invalid blinding nonce".into()));
                 }
-            } else if !blinding_nonces[idx].is_empty() {
+            } else if blinding_nonces.contains_key(&idx) {
                 return Err(Error::Generic("Invalid blinding nonce".into()));
             }
         }
+
+        for idx in blinding_nonces.keys() {
+            if idx > &pset.n_outputs() {
+                return Err(Error::Generic(
+                    "Invalid output index in blinding nonces".into(),
+                ));
+            }
+        }
+
         Ok(Self {
             pset,
             blinding_nonces,
@@ -1693,7 +1707,7 @@ impl Amp0Pset {
     }
 
     /// Get the blinding nonces
-    pub fn blinding_nonces(&self) -> &[String] {
+    pub fn blinding_nonces(&self) -> &HashMap<usize, SecretKey> {
         &self.blinding_nonces
     }
 }
@@ -2129,7 +2143,7 @@ mod tests {
         assert!(sigs > 0);
 
         // Reconstruct the Amp0 PSET with the PSET signed by the user
-        let amp0pset = Amp0Pset::new(pset, blinding_nonces.to_vec()).unwrap();
+        let amp0pset = Amp0Pset::new(pset, blinding_nonces.clone()).unwrap();
 
         // AMP0 signs
         let tx = amp0.sign(&amp0pset).unwrap();
