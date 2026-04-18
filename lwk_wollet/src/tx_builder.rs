@@ -1346,6 +1346,14 @@ impl<'a> WolletTxBuilder<'a> {
         self.inner.finish_for_amp0(self.wollet)
     }
 
+    // COnsume this builder and create a transaction with the blinding secrets.
+    #[cfg(feature = "nonces")]
+    pub fn finish_with_secrets(
+        self,
+    ) -> Result<(PartiallySignedTransaction, OutputSharedSecrets), Error> {
+        self.inner.finish_with_secrets(self.wollet)
+    }
+
     /// Wrapper of [`TxBuilder::add_recipient()`]
     pub fn add_recipient(
         self,
