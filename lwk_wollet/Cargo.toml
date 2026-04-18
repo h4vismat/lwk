@@ -136,6 +136,7 @@ amp0 = [
     "rmpv",
     "rmp-serde",
 ]
+nonces = []
 prices = ["reqwest"]
 registry = ["reqwest"]
 
